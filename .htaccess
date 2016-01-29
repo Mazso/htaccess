@@ -1,0 +1,359 @@
+#DirectoryIndex index.php index.html
+
+
+#order allow,deny
+#allow from all
+#deny from 85.13.128.66
+
+
+# ACHTUNG. SPERRT SITE VOR SUCHMASCHINEN. VOR PUBLIKATION ENTFERNEN!
+#Header set X-Robots-Tag "noindex, nofollow"
+
+<IfModule mod_autoindex.c>
+  Options -Indexes
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header set X-UA-Compatible "IE=edge"
+    <FilesMatch "\.(appcache|crx|css|eot|gif|htc|ico|jpe?g|js|m4a|m4v|manifest|mp4|oex|oga|ogg|ogv|otf|pdf|png|safariextz|svgz?|ttf|vcf|webapp|webm|webp|woff|xml|xpi)$">
+        Header unset X-UA-Compatible
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteCond %{SCRIPT_FILENAME} -d [OR]
+  RewriteCond %{SCRIPT_FILENAME} -f
+  RewriteRule "(^|/)\." - [F]
+</IfModule>
+
+<FilesMatch "(\.(bak|config|sql|fla|psd|ini|log|sh|inc|swp|dist)|~)$">
+  Order allow,deny
+  Deny from all
+  Satisfy All
+</FilesMatch>
+
+Options -Indexes
+
+php_flag register_globals Off
+php_value date.timezone Europe/Berlin
+php_flag magic_quotes_gpc off
+# Sicherheitseinstellung: erst auf dem Server anpasssen!
+# php_value open_basedir /www/htdocs/pfad-zur-installation 
+Options +FollowSymlinks
+RewriteEngine On
+RewriteBase /
+
+# Erg‰nzt Dateien nach dem Muster standard.min.css und die aktuelle Zeit (standard.min.1336478969.css). Siehe snippet latestVersion
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule (.+)\.(min|dev)\.(\d+)\.(js|css)$ $1.$2.$4 [L]
+#RewriteRule (.+)\.(dev)\.(\d+)\.(js|css)$ $1.$2.$4 [L]
+
+
+# Fix Apache internal dummy connections from breaking [(site_url)] cache
+RewriteCond %{HTTP_USER_AGENT} ^.*internal\ dummy\ connection.*$ [NC]
+RewriteRule .* - [F,L]
+
+
+# www.domain.de -> domain.de
+#<IfModule mod_rewrite.c>
+#RewriteCond %{HTTPS} !=on
+#RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+#RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
+#</IfModule>
+
+# domain.de -> www.domain.de
+# <IfModule mod_rewrite.c>
+# RewriteCond %{HTTPS} !=on
+# RewriteCond %{HTTP_HOST} !^www\..+$ [NC]
+# RewriteRule ^(.*)$ http://www.%1/$1 [R=301,L]
+# </IfModule>
+
+# oder
+
+# domain.de -> www.domain.de
+#<IfModule mod_rewrite.c>
+#RewriteCond %{HTTPS} !=on
+#RewriteCond %{HTTP_HOST} !^www\.domain\.com$
+#RewriteRule ^(.*)$ http://www.domain.com/$1 [L,R=301]
+#</IfModule>
+
+
+# Exclude /assets and /manager directories from rewrite rules
+RewriteRule ^(manager|assets) - [L]
+
+
+# Slash ans Ende
+#RewriteCond %{REQUEST_FILENAME} !-f
+#RewriteCond %{REQUEST_URI} !(\.[a-zA-Z0-9]{1,5}|/|#(.*))$
+#RewriteRule ^(.*)$ /$1/ [R=301,L]
+
+# For Friendly URLs
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?q=$1 [L,QSA]
+
+# F‰ngt URLs mit uncodiertem Leerzeichen ab
+RewriteCond %{REQUEST_URI} !^/$
+RewriteCond %{QUERY_STRING} \s
+RewriteRule .* - [F,L]
+
+ 
+
+
+
+# AddHandler x-httpd-php 					.appcache
+
+AddDefaultCharset 						utf-8
+<IfModule mod_mime.c>
+    AddCharset utf-8 .atom .css .js .json .rss .vtt .webapp .xml
+</IfModule> 
+
+DefaultType 							text/html
+
+AddType application/pdf 				pdf
+AddType text/css 						css
+AddType text/javascript 				js
+AddType application/javascript          js
+AddType application/json                json
+
+AddType image/jpeg 						jpg
+AddType image/png 						png
+AddType image/gif 						gif
+AddType image/x-icon 					ico
+AddType image/webp                      webp
+
+AddType image/svg+xml  					svg svgz 
+AddEncoding gzip  						svgz
+
+AddType application/vnd.ms-fontobject  	eot
+AddType font/truetype                  	ttf
+AddType font/opentype                  	otf
+AddType application/x-font-woff        	woff
+
+AddType audio/mpeg 						mp3
+AddType audio/mp4 						m4a
+AddType audio/mp4 						mp4
+AddType audio/mp4 						mpa
+AddType audio/ogg 						ogg
+AddType audio/ogg 						oga
+AddType audio/webm 						webma
+AddType audio/wav 						wav
+
+AddType video/ogg 						ogv
+AddType video/ogg 						ogg
+AddType video/mp4 						mp4
+AddType video/webm 						webm
+AddType application/x-shockwave-flash   swf<
+
+AddType text/cache-manifest 			appcache
+
+AddType text/x-component                    htc
+AddType application/xml                     rss atom xml rdf
+AddType application/x-chrome-extension      crx
+AddType application/x-opera-extension       oex
+AddType application/x-xpinstall             xpi
+AddType application/octet-stream            safariextz
+AddType application/x-web-app-manifest+json webapp
+AddType text/x-vcard                        vcf
+AddType text/vtt                            vtt
+
+
+
+<IfModule mod_deflate.c>
+
+  # Force deflate for mangled headers developer.yahoo.com/blogs/ydn/posts/2010/12/pushing-beyond-gzipping/
+  <IfModule mod_setenvif.c>
+    <IfModule mod_headers.c>
+      SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s*,?\s*)+|[X~-]{4,13}$ HAVE_Accept-Encoding
+      RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
+    </IfModule>
+  </IfModule>
+
+  # Compress all output labeled with one of the following MIME-types
+  <IfModule mod_filter.c>
+    AddOutputFilterByType DEFLATE application/atom+xml \
+                                  application/javascript \
+                                  application/json \
+                                  application/rss+xml \
+                                  application/vnd.ms-fontobject \
+                                  application/x-font-ttf \
+                                  application/x-font-woff \
+                                  application/xhtml+xml \
+                                  application/xml \
+                                  font/opentype \
+                                  font/truetype \
+                                  image/svg+xml \
+                                  image/x-icon \
+                                  text/css \
+                                  text/html \
+                                  text/plain \
+                                  text/x-component \
+                                  text/xml
+  </IfModule>
+
+</IfModule>
+
+
+
+# ----------------------------------------------------------------------
+# Expires headers (for better cache control)
+# ----------------------------------------------------------------------
+
+
+<IfModule mod_expires.c>
+  ExpiresActive on
+
+# Perhaps better to whitelist expires rules? Perhaps.
+  ExpiresDefault                              "access plus 1 day"
+
+# your document html 
+  ExpiresByType text/html                     "access plus 1 minute"
+  
+# data
+  ExpiresByType text/xml                      "access plus 1 day"
+  ExpiresByType application/xml               "access plus 1 day"
+  ExpiresByType application/json              "access plus 0 seconds"
+
+# rss feed
+  ExpiresByType application/rss+xml           "access plus 1 hour"
+
+# favicon (cannot be renamed)
+  ExpiresByType image/x-icon                  "access plus 1 month" 
+
+# media: images, video, audio
+  ExpiresByType image/gif                     "access plus 1 month"
+  ExpiresByType image/png                     "access plus 1 month"
+  ExpiresByType image/jpg                     "access plus 1 month"
+  ExpiresByType image/jpeg                    "access plus 1 month"
+  ExpiresByType video/ogg                     "access plus 0 seconds"
+  ExpiresByType audio/ogg                     "access plus 0 seconds"
+  ExpiresByType video/mp4                     "access plus 0 seconds"
+  ExpiresByType video/webm                    "access plus 0 seconds"
+  
+# webfonts
+  ExpiresByType font/truetype                 "access plus 1 year"
+  ExpiresByType font/opentype                 "access plus 1 year"
+  ExpiresByType application/x-font-woff       "access plus 1 year"
+  ExpiresByType image/svg+xml                 "access plus 1 month"
+    
+# css and javascript
+  ExpiresByType text/css                      "access plus 1 week"
+  ExpiresByType application/javascript        "access plus 1 week" 
+  ExpiresByType text/javascript               "access plus 1 week"
+  
+
+
+
+# BrowserMatch "MSIE" brokenvary=1
+#  BrowserMatch "Mozilla/4.[0-9]{2}" brokenvary=1
+#  BrowserMatch "Opera" !brokenvary
+#  SetEnvIf brokenvary 1 force-no-vary
+
+  
+</IfModule>
+
+
+<IfModule mod_headers.c>
+    Header append Cache-Control "public"
+    Header set Connection keep-alive
+    Header unset ETag
+</IfModule>
+
+FileETag None
+
+
+# CORS-enabled images (@crossorigin)
+
+<IfModule mod_setenvif.c>
+  <IfModule mod_headers.c>
+    # mod_headers, y u no match by Content-Type?!
+    <FilesMatch "\.(gif|png|jpe?g|svg|svgz|ico|webp)$">
+      SetEnvIf Origin ":" IS_CORS
+      Header set Access-Control-Allow-Origin "*" env=IS_CORS
+    </FilesMatch>
+  </IfModule>
+</IfModule>
+
+# To get all the details you'll need to craft a reasonable policy for your site,
+# read: http://html5rocks.com/en/tutorials/security/content-security-policy (or
+# see the specification: http://w3.org/TR/CSP).
+
+# <IfModule mod_headers.c>
+#    Header set Content-Security-Policy "script-src 'self'; object-src 'self'"
+#    <FilesMatch "\.(appcache|crx|css|eot|gif|htc|ico|jpe?g|js|m4a|m4v|manifest|mp4|oex|oga|ogg|ogv|otf|pdf|png|safariextz|svgz?|ttf|vcf|webapp|webm|webp|woff|xml|xpi)$">
+#        Header unset Content-Security-Policy
+#    </FilesMatch>
+# </IfModule>
+
+# Webfont access
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(ttf|ttc|otf|eot|woff|font.css)$">
+    Header set Access-Control-Allow-Origin "*"
+  </FilesMatch>
+</IfModule>
+
+# Verhindert Ver‰nderungen durch UMTS Provider
+
+# <IfModule mod_headers.c>
+# Header set Cache-Control "no-transform"
+# </IfModule>
+
+## Sicherheit
+
+# PHP-EasterEggs ausschalten http://perishablepress.com/expose-php/
+ServerSignature Off
+RewriteCond %{QUERY_STRING} \=PHP[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12} [NC]
+RewriteRule .* - [F]
+
+
+#<limit GET POST PUT>
+#	Order Allow,Deny
+#	Allow from all
+	# PunkSpider
+#	Deny from 198.101.170.230
+#</limit>
+
+# Rename session cookie to something else, than PHPSESSID
+# php_value session.name sid
+
+# Disable magic quotes (This feature has been DEPRECATED as of PHP 5.3.0 and REMOVED as of PHP 5.4.0.)
+# php_flag magic_quotes_gpc Off
+
+
+# Level of log detail - log all errors
+# php_value error_reporting -1
+
+# Write errors to log file
+# php_flag log_errors On
+
+# Do not display errors in browser (production - Off, development - On)
+# php_flag display_errors Off
+
+# Do not display startup errors (production - Off, development - On)
+# php_flag display_startup_errors Off
+
+# Format errors in plain text
+# Note: Leave this setting 'On' for xdebug's var_dump() output
+# php_flag html_errors Off
+
+# Show multiple occurrence of error
+# php_flag ignore_repeated_errors Off
+
+# Show same errors from different sources
+# php_flag ignore_repeated_source Off
+
+# Size limit for error messages
+# php_value log_errors_max_len 1024
+
+# Don't precede error with string (doesn't accept empty string, use whitespace if you need)
+# php_value error_prepend_string " "
+
+# Don't prepend to error (doesn't accept empty string, use whitespace if you need)
+# php_value error_append_string " "
+
+# Increase cookie security
+<IfModule php5_module>
+  php_value session.cookie_httponly true
+</IfModule>
